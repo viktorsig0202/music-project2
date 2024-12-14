@@ -1,0 +1,6 @@
+services:
+    music_search.music_search_service:
+        class: Drupal\music_search\MusicSearchService
+        arguments: ['@http_client', '@config.factory']
+        tags:
+        - { name: http_client_factory }

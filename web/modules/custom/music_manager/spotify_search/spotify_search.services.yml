@@ -1,0 +1,12 @@
+parameters:
+  spotify_search.client_id: '09bc99863e10436590bf37aef388863d'
+  spotify_search.client_secret: '82b1d0f488eb451191e90381fb054675'
+
+services:
+  spotify_search.service:
+    class: Drupal\spotify_search\Service\SpotifySearchService
+    arguments:
+      - '@http_client'
+      - '@logger.factory'
+      - '%spotify_search.client_id%'
+      - '%spotify_search.client_secret%'

@@ -1,0 +1,7 @@
+spotify_search.form:
+  path: '/spotify-search'
+  defaults:
+    _form: '\Drupal\spotify_search\Form\SpotifySearchForm'
+    _title: 'Spotify Search'
+  requirements:
+    _permission: 'access content'

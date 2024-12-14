@@ -1,0 +1,6 @@
+services:
+  spotify_lookup.token_service:
+    class: Drupal\spotify_lookup\SpotifyTokenService
+    arguments: ['@http_client', '@config.factory', '@logger.factory']
+    tags:
+      - { name: service }

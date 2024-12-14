@@ -1,0 +1,7 @@
+music_manager.search_page:
+  path: '/music-manager'
+  defaults:
+    _controller: '\Drupal\music_manager\Controller\MusicManagerController::searchPage'
+    _title: 'Music Manager'
+  requirements:
+    _permission: 'access content'

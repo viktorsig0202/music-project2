@@ -24,3 +24,4 @@ $databases['default']['default'] = array (
   'autoload' => 'core/modules/mysql/src/Driver/Database/mysql/',
 );
 $settings['hash_salt'] = 'bm8dia27vphiuPn562lfEFp__tddL_buKfl9DTWpMrN2XZ4zn-VbsyXWIYVtVrS4id37vsmcbw';
+
