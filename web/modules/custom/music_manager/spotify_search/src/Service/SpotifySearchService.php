@@ -199,6 +199,18 @@ class SpotifySearchService {
   }
 
   private function fetchDetails($access_token, $url, $type) {
+    if ($type === 'track') {
+      $fields = 'name,album.name,artists.name,duration_ms,popularity,external_urls.spotify';
+    }
+    elseif ($type === 'artist') {
+      $fields = 'name,followers.total,genres,external_urls.spotify';
+    }
+    elseif ($type === 'album') {
+      $fields = 'name,artists.name,release_date,total_tracks,external_urls.spotify';
+    }
+    else {
+      return '<p>Invalid type.</p>';
+    }
     try {
       $response = $this->httpClient->get($url, [
         'headers' => [
@@ -207,7 +219,31 @@ class SpotifySearchService {
       ]);
 
       $data = json_decode($response->getBody(), TRUE);
-      return json_encode($data, JSON_PRETTY_PRINT);
+      $details = '';
+
+      if ($type === 'track') {
+        $details .= '<p><strong>Track:</strong> ' . $data['name'] . '</p>';
+        $details .= '<p><strong>Album:</strong> ' . $data['album']['name'] . '</p>';
+        $details .= '<p><strong>Artist:</strong> ' . $data['artists'][0]['name'] . '</p>';
+        $details .= '<p><strong>Duration:</strong> ' . round($data['duration_ms'] / 60000, 2) . ' minutes</p>';
+        $details .= '<p><strong>Popularity:</strong> ' . $data['popularity'] . '</p>';
+        $details .= '<p><a href="' . $data['external_urls']['spotify'] . '" target="_blank">Listen on Spotify</a></p>';
+      }
+      elseif ($type === 'artist') {
+        $details .= '<p><strong>Artist:</strong> ' . $data['name'] . '</p>';
+        $details .= '<p><strong>Followers:</strong> ' . $data['followers']['total'] . '</p>';
+        $details .= '<p><strong>Genres:</strong> ' . implode(', ', $data['genres']) . '</p>';
+        $details .= '<p><img src="' . $data['images'][0]['url'] . '"></p>';
+        $details .= '<p><a href="' . $data['external_urls']['spotify'] . '" target="_blank">View on Spotify</a></p>';
+      }
+      elseif ($type === 'album') {
+        $details .= '<p><strong>Album:</strong> ' . $data['name'] . '</p>';
+        $details .= '<p><strong>Artist:</strong> ' . $data['artists'][0]['name'] . '</p>';
+        $details .= '<p><strong>Release Date:</strong> ' . $data['release_date'] . '</p>';
+        $details .= '<p><strong>Total Tracks:</strong> ' . $data['total_tracks'] . '</p>';
+        $details .= '<p><a href="' . $data['external_urls']['spotify'] . '" target="_blank">View on Spotify</a></p>';
+      }
+      return $details;
     }
     catch (\Exception $e) {
       $this->logger->error('Error fetching details from Spotify: @message', ['@message' => $e->getMessage()]);
