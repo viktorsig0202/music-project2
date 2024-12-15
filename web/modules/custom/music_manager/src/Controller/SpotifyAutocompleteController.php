@@ -6,63 +6,55 @@ use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\spotify_search\Service\SpotifySearchService;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Handles Spotify Autocomplete requests.
+ * Controller for Spotify autocomplete.
  */
 class SpotifyAutocompleteController extends ControllerBase {
 
-  /**
-   * The Spotify search service.
-   *
-   * @var \Drupal\spotify_search\Service\SpotifySearchService
-   */
-  protected $spotifySearch;
+  protected $spotifySearchService;
 
-  /**
-   * Constructs the controller with SpotifySearchService.
-   */
-  public function __construct() {
-    $this->spotifySearch = \Drupal::service('spotify_search.service');
+  public function __construct(SpotifySearchService $spotifySearchService) {
+    $this->spotifySearchService = $spotifySearchService;
+  }
+
+  public static function create(ContainerInterface $container) {
+    return new static($container->get('spotify_search.service'));
   }
 
   /**
-   * Handles autocomplete requests to Spotify API.
+   * Handles autocomplete requests.
    */
   public function handleAutocomplete(Request $request, $type) {
-    $search_term = $request->query->get('q');
     $results = [];
+    $query = $request->query->get('q');
 
-    if ($search_term) {
-      $access_token = $this->spotifySearch->getAccessToken();
-      if ($access_token) {
-        // Perform search based on type.
-        $spotify_results = $this->spotifySearch->search($access_token, $search_term);
-
-        if ($type === 'track' && !empty($spotify_results['tracks'])) {
-          foreach ($spotify_results['tracks'] as $track) {
-            $results[] = [
-              'value' => $track['name'],
-              'label' => $track['id'] . ' - ' . $track['name'],
-            ];
-          }
-        }
-        elseif ($type === 'artist' && !empty($spotify_results['artists'])) {
-          foreach ($spotify_results['artists'] as $artist) {
-            $results[] = [
-              'value' => $artist['name'],
-              'label' => $artist['id'] . ' - ' . $artist['name'],
-            ];
-          }
-        }
-        elseif ($type === 'album' && !empty($spotify_results['albums'])) {
-          foreach ($spotify_results['albums'] as $album) {
-            $results[] = [
-              'value' => $album['name'],
-              'label' => $album['id'] . ' - ' . $album['name'],
-            ];
-          }
-        }
+    if ($query && $type === 'artist') {
+      $spotifyData = $this->spotifySearchService->searchArtist($query);
+      if ($spotifyData) {
+        $results[] = [
+          'value' => $spotifyData['name'],
+          'label' => $spotifyData['name'] . ' (' . implode(', ', $spotifyData['genres']) . ')',
+        ];
+      }
+    }
+    elseif ($query && $type === 'track') {
+      $spotifyData = $this->spotifySearchService->searchTrack($query);
+      if ($spotifyData) {
+        $results[] = [
+          'value' => $spotifyData['name'],
+          'label' => $spotifyData['name'] . ' (' . $spotifyData['album'] . ')',
+        ];
+      }
+    }
+    elseif ($query && $type === 'album') {
+      $spotifyData = $this->spotifySearchService->searchAlbum($query);
+      if ($spotifyData) {
+        $results[] = [
+          'value' => $spotifyData['name'],
+          'label' => $spotifyData['name'] . ' (' . $spotifyData['artist'] . ')',
+        ];
       }
     }
 

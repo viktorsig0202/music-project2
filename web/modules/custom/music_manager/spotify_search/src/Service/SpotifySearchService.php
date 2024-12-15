@@ -10,46 +10,11 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
  */
 class SpotifySearchService {
 
-  /**
-   * The HTTP client.
-   *
-   * @var \GuzzleHttp\Client
-   */
   protected $httpClient;
-
-  /**
-   * The logger channel.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
   protected $logger;
-
-  /**
-   * Spotify API client ID.
-   *
-   * @var string
-   */
   protected $clientId;
-
-  /**
-   * Spotify API client secret.
-   *
-   * @var string
-   */
   protected $clientSecret;
 
-  /**
-   * Constructs the SpotifySearchService.
-   *
-   * @param \GuzzleHttp\Client $http_client
-   *   The HTTP client.
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
-   *   The logger channel factory.
-   * @param string $client_id
-   *   Spotify API client ID.
-   * @param string $client_secret
-   *   Spotify API client secret.
-   */
   public function __construct(Client $http_client, LoggerChannelFactoryInterface $logger_factory, $client_id, $client_secret) {
     $this->httpClient = $http_client;
     $this->logger = $logger_factory->get('spotify_search');
@@ -58,24 +23,14 @@ class SpotifySearchService {
   }
 
   /**
-   * Gets a Spotify API access token.
-   *
-   * @return string|null
-   *   The access token, or NULL on failure.
+   * Get Spotify API access token.
    */
   public function getAccessToken() {
-    $url = 'https://accounts.spotify.com/api/token';
-
     try {
-      $response = $this->httpClient->post($url, [
-        'headers' => [
-          'Authorization' => 'Basic ' . base64_encode("{$this->clientId}:{$this->clientSecret}"),
-        ],
-        'form_params' => [
-          'grant_type' => 'client_credentials',
-        ],
+      $response = $this->httpClient->post('https://accounts.spotify.com/api/token', [
+        'headers' => ['Authorization' => 'Basic ' . base64_encode("{$this->clientId}:{$this->clientSecret}")],
+        'form_params' => ['grant_type' => 'client_credentials'],
       ]);
-
       $data = json_decode($response->getBody(), TRUE);
       return $data['access_token'] ?? NULL;
     }
@@ -84,6 +39,39 @@ class SpotifySearchService {
       return NULL;
     }
   }
+
+  /**
+   * Search for an artist by name.
+   */
+  public function searchArtist($name) {
+    $access_token = $this->getAccessToken();
+    if (!$access_token) return NULL;
+
+    try {
+      $response = $this->httpClient->get('https://api.spotify.com/v1/search', [
+        'headers' => ['Authorization' => "Bearer $access_token"],
+        'query' => ['q' => $name, 'type' => 'artist', 'limit' => 5],
+      ]);
+
+      $data = json_decode($response->getBody(), TRUE);
+      if (!empty($data['artists']['items'][0])) {
+        $artist = $data['artists']['items'][0];
+        return [
+          'id' => $artist['id'] ?? '',
+          'name' => $artist['name'] ?? '',
+          'genres' => $artist['genres'] ?? [],
+          'images' => $artist['images'][0]['url'] ?? '',
+          'url' => $artist['external_urls']['spotify'] ?? '',
+        ];
+      }
+    }
+    catch (\Exception $e) {
+      $this->logger->error('Error searching for artist: @message', ['@message' => $e->getMessage()]);
+    }
+    return NULL;
+  }
+
+
   public function search($access_token, $query) {
     $url = 'https://api.spotify.com/v1/search';
 
