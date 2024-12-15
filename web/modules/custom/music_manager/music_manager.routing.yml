@@ -5,3 +5,27 @@ music_manager.search_page:
     _title: 'Music Manager'
   requirements:
     _permission: 'access content'
+
+music_manager.create_artist:
+  path: '/music-manager/create-artist'
+  defaults:
+    _form: '\Drupal\music_manager\Form\CreateArtistForm'
+    _title: 'Create Artist'
+  requirements:
+    _permission: 'access content'
+
+music_manager.create_album:
+  path: '/music-manager/create-album'
+  defaults:
+    _form: '\Drupal\music_manager\Form\CreateAlbumForm'
+    _title: 'Create Album'
+  requirements:
+    _permission: 'access content'
+
+music_manager.create_track:
+  path: '/music-manager/create-track'
+  defaults:
+    _form: '\Drupal\music_manager\Form\CreateTrackForm'
+    _title: 'Create Track'
+  requirements:
+    _permission: 'access content'

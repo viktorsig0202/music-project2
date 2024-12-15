@@ -8,25 +8,25 @@ use Drupal\Core\Url;
 class MusicManagerController extends ControllerBase {
 
   /**
-   * Returns the search bar and content creation links.
+   * Returns the search bar and custom content creation links.
    */
   public function searchPage() {
     // Render the search bar form.
     $form = \Drupal::formBuilder()->getForm('Drupal\spotify_search\Form\SpotifySearchForm');
 
-    // Define links to create content for the specified content types.
+    // Define links to custom content creation forms.
     $links = [
       [
         'title' => $this->t('Create Artist'),
-        'url' => Url::fromRoute('node.add', ['node_type' => 'artist']),
+        'url' => Url::fromRoute('music_manager.create_artist'),
       ],
       [
         'title' => $this->t('Create Album'),
-        'url' => Url::fromRoute('node.add', ['node_type' => 'album']),
+        'url' => Url::fromRoute('music_manager.create_album'),
       ],
       [
         'title' => $this->t('Create Track'),
-        'url' => Url::fromRoute('node.add', ['node_type' => 'track']),
+        'url' => Url::fromRoute('music_manager.create_track'),
       ],
     ];
 
@@ -49,4 +49,52 @@ class MusicManagerController extends ControllerBase {
       ],
     ];
   }
+
+  /**
+   * Menu page with links to custom forms.
+   */
+  public function menuPage() {
+    return [
+      '#theme' => 'item_list',
+      '#items' => [
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Create Artist'),
+          '#url' => Url::fromRoute('music_manager.create_artist'),
+        ],
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Create Album'),
+          '#url' => Url::fromRoute('music_manager.create_album'),
+        ],
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Create Track'),
+          '#url' => Url::fromRoute('music_manager.create_track'),
+        ],
+      ],
+    ];
+  }
+
+  /**
+   * Returns the form for creating an artist.
+   */
+  public function createArtist() {
+    return \Drupal::formBuilder()->getForm('Drupal\music_manager\Form\CreateArtistForm');
+  }
+
+  /**
+   * Returns the form for creating an album.
+   */
+  public function createAlbum() {
+    return \Drupal::formBuilder()->getForm('Drupal\music_manager\Form\CreateAlbumForm');
+  }
+
+  /**
+   * Returns the form for creating a track.
+   */
+  public function createTrack() {
+    return \Drupal::formBuilder()->getForm('Drupal\music_manager\Form\CreateTrackForm');
+  }
 }
+
