@@ -1,7 +1,0 @@
-name: 'Music Search'
-type: module
-description: 'A module for searching music data from Spotify and Discogs APIs.'
-core_version_requirement: ^10 || ^11
-package: Custom
-dependencies:
-  - drupal:spotify_lookup

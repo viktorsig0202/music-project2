@@ -1,7 +1,0 @@
-music_search.results:
-  path: '/music-search/results'
-  defaults:
-    _controller: '\Drupal\music_search\Controller\SearchResultsController::results'
-    _title: 'Search Results'
-  requirements:
-    _permission: 'access content'

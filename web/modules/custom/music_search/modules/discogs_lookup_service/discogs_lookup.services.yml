@@ -1,6 +1,0 @@
-services:
-  discogs_lookup.service:
-    class: Drupal\discogs_lookup\DiscogsLookupService
-    arguments: ['@http_client', '@config.factory']
-    tags:
-      - { name: service }

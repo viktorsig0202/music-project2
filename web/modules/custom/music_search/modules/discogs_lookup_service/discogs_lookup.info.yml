@@ -1,5 +1,0 @@
-name: 'Discogs Lookup'
-type: module
-description: 'Provides Discogs integration for Music Search.'
-core_version_requirement: ^10 || ^11
-package: Custom
