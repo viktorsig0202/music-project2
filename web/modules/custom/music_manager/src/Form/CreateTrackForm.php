@@ -25,6 +25,11 @@ class CreateTrackForm extends FormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Track Name'),
       '#required' => TRUE,
+      '#autocomplete_route_name' => 'music_manager.spotify_autocomplete',
+      '#autocomplete_route_parameters' => ['type' => 'track'],
+      '#attributes' => [
+        'data-spotify-type' => 'track',
+      ],
     ];
 
     $form['album'] = [

@@ -28,6 +28,11 @@ class CreateAlbumForm extends FormBase
       '#type' => 'textfield',
       '#title' => $this->t('Album Name'),
       '#required' => TRUE,
+      '#autocomplete_route_name' => 'music_manager.spotify_autocomplete',
+      '#autocomplete_route_parameters' => ['type' => 'album'],
+      '#attributes' => [
+        'data-spotify-type' => 'album',
+      ],
     ];
 
     $form['release_date'] = [

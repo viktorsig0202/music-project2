@@ -29,3 +29,13 @@ music_manager.create_track:
     _title: 'Create Track'
   requirements:
     _permission: 'access content'
+
+music_manager.spotify_autocomplete:
+  path: '/music-manager/autocomplete/{type}'
+  defaults:
+    _controller: '\Drupal\music_manager\Controller\SpotifyAutocompleteController::handleAutocomplete'
+    _title: 'Spotify Autocomplete'
+  requirements:
+    _permission: 'access content'
+
+
