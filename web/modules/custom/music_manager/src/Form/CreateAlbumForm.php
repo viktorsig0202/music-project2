@@ -4,80 +4,70 @@ namespace Drupal\music_manager\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\spotify_search\Service\SpotifySearchService;
+use Drupal\node\Entity\Node;
 
-/**
- * Provides a form to create an Album.
- */
-class CreateAlbumForm extends FormBase
-{
+class CreateAlbumForm extends FormBase {
 
-  /**
-   * {@inheritdoc}
-   */
-  public function getFormId()
-  {
+  protected $spotifySearchService;
+
+  public function __construct(SpotifySearchService $spotifySearchService) {
+    $this->spotifySearchService = $spotifySearchService;
+  }
+
+  public static function create(ContainerInterface $container) {
+    return new static($container->get('spotify_search.service'));
+  }
+
+  public function getFormId() {
     return 'create_album_form';
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function buildForm(array $form, FormStateInterface $form_state)
-  {
-    $form['name'] = [
+  public function buildForm(array $form, FormStateInterface $form_state) {
+    $form['album_name'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Album Name'),
+      '#title' => t('Album Name'),
       '#required' => TRUE,
       '#autocomplete_route_name' => 'music_manager.spotify_autocomplete',
       '#autocomplete_route_parameters' => ['type' => 'album'],
-      '#attributes' => [
-        'data-spotify-type' => 'album',
-      ],
     ];
 
-    $form['release_date'] = [
-      '#type' => 'date',
-      '#title' => $this->t('Release Date'),
-    ];
-
-    $form['total_tracks'] = [
-      '#type' => 'number',
-      '#title' => $this->t('Total Tracks'),
-      '#required' => TRUE,
-    ];
-
-    $form['actions']['submit'] = [
+    $form['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Create Album'),
+      '#value' => t('Create Album'),
     ];
 
     return $form;
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function submitForm(array &$form, FormStateInterface $form_state)
-  {
-    $name = $form_state->getValue('name');
-    $release_date = $form_state->getValue('release_date');
-    $total_tracks = $form_state->getValue('total_tracks');
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+    $albumName = $form_state->getValue('album_name');
+    $spotifyData = $this->spotifySearchService->searchAlbum($albumName);
 
-    // Create a new node of type 'album'.
-    $node = \Drupal\node\Entity\Node::create([
-      'type' => 'album',
-      'title' => $name,
-      'field_release_year' => $release_date, // Assuming the Album content type has a 'field_release_date' field.
-      'field_tracks_on_album' => $total_tracks, // Assuming the Album content type has a 'field_total_tracks' field.
-    ]);
+    if ($spotifyData) {
+      // Safely handle the 'image' key.
+      $imageUrl = isset($spotifyData['image']) && !empty($spotifyData['image'])
+        ? $spotifyData['image']
+        : '';
 
-    // Save the node.
-    $node->save();
+      // Create the node with the Spotify album data.
+      $node = Node::create([
+        'type' => 'album',
+        'title' => $spotifyData['name'],
+        'field_album_spotify_id' => $spotifyData['id'],
+        'field_artist_name' => $spotifyData['artist'],
+        'field_release_date' => $spotifyData['release_date'],
+        'field_total_tracks' => $spotifyData['total_tracks'],
+        'field_album_image_url' => $imageUrl,
+        'field_album_spotify_link' => ['uri' => $spotifyData['url']],
+      ]);
+      $node->save();
 
-    // Display a confirmation message.
-    $this->messenger()->addMessage($this->t('Album "@name" has been created successfully.', ['@name' => $name]));
-
-    // Optionally redirect to the created node or another page.
-    $form_state->setRedirect('entity.node.canonical', ['node' => $node->id()]);
+      \Drupal::messenger()->addMessage(t('The album "@name" has been created successfully.', ['@name' => $spotifyData['name']]));
+    }
+    else {
+      \Drupal::messenger()->addError(t('Unable to retrieve data for album "@name".', ['@name' => $albumName]));
+    }
   }
 }
